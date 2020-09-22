@@ -1,0 +1,23 @@
+{
+  "name": "miniature-parakeet",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "useWorkspaces": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "repository": "https://github.com/LukeWood/miniature-parakeet.git",
+  "author": "Luke Wood <lukewoodcs@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "concurrently --kill-others-on-fail \"yarn start:client\" \"yarn start:server\"",
+    "start:server": "yarn workspace @miniature-parakeet/server start",
+    "start:client": "yarn workspace @miniature-parakeet/client start"
+  },
+  "devDependencies": {
+    "concurrently": "^5.3.0"
+  }
+}
