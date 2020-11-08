@@ -2,7 +2,7 @@ import React, { Component, ReactNode } from 'react';
 
 import { StateManager } from './state/StateManager';
 import { GameView } from './view/GameView';
-import { ColyseusService } from '../services/colyseus'
+import { ColyseusService } from '@bulletz/client/services/colyseus'
 
 interface IProps { }
 
