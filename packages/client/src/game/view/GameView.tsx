@@ -1,12 +1,12 @@
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import { StateManager } from '../state/StateManager';
 
-import { useWindowSize } from '../hooks/useWindowSize';
+import { useWindowSize, useDisableScroll } from '@bulletz/client/src/hooks';
 
-import {Stage, AppConsumer, render} from '@inlet/react-pixi';
+import { Stage, AppConsumer, render } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 
-import {PlayerSprite} from './entities';
+import { PlayerSprite } from './entities';
 
 interface IProps {
   stateManager: StateManager;
@@ -23,12 +23,12 @@ interface GameDisplayComponentProps {
 
 const GameDisplayComponent = (props: GameDisplayComponentProps) => {
   return <>
-    {props.stateManager.getGameState().players.map((player) => <PlayerSprite key={player.id} player={player}/>)}
+    {props.stateManager.getGameState().players.map((player) => <PlayerSprite key={player.id} player={player} />)}
   </>
 }
 
-const loop = (props:GameRenderComponentProps) => {
-  let animFrame: null|number;
+const loop = (props: GameRenderComponentProps) => {
+  let animFrame: null | number;
   function callback(t: number) {
     animFrame = requestAnimationFrame(callback)
     // custom render components into PIXI Container
@@ -42,7 +42,7 @@ const loop = (props:GameRenderComponentProps) => {
   }
 }
 
-const GameRenderComponent = (props:GameRenderComponentProps) => {
+const GameRenderComponent = (props: GameRenderComponentProps) => {
   useEffect(() => {
     const cancel = loop(props)
     return () => {
@@ -54,17 +54,18 @@ const GameRenderComponent = (props:GameRenderComponentProps) => {
 
 export const GameView = (props: IProps) => {
   const size = useWindowSize();
+  useDisableScroll();
 
   return (<Stage
-      raf
-      width={size.width}
-      height={size.height}
-      style={{position: 'absolute'}}
-    >
-      <AppConsumer>
-        {app => <>
-          <GameRenderComponent app={app} stateManager={props.stateManager}/>
-        </>}
-      </AppConsumer>
-    </Stage>)
+    raf
+    width={size.width}
+    height={size.height}
+    className="game-view"
+  >
+    <AppConsumer>
+      {app => <>
+        <GameRenderComponent app={app} stateManager={props.stateManager} />
+      </>}
+    </AppConsumer>
+  </Stage>)
 }
