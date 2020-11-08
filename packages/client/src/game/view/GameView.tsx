@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { StateManager } from '../state/StateManager';
 
-import { useWindowSize, useDisableScroll } from '@bulletz/client/src/hooks';
+import { useWindowSize, useDisableScroll } from '../../hooks';
 
 import { Stage, AppConsumer, render } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';

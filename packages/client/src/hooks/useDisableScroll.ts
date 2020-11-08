@@ -10,7 +10,7 @@ export const useDisableScroll = () => {
     scrollCount++;
     return () => {
       scrollCount--;
-      if (scrollCount == 0) {
+      if (scrollCount === 0) {
         document.body.classList.remove("scroll-disabled")
       }
     }
