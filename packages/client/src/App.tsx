@@ -12,16 +12,16 @@ class App extends Component {
   constructor(props: IProps) {
     super(props)
     this.colyseus = new ColyseusService(
-      process.env.NODE_ENV !== 'production' ? 'ws' : (window.location.protocol !== 'https:' ? 'ws' : 'wss'),
-      process.env.NODE_ENV !== 'production' ? 'localhost' : 'game.tp-scramble.io',
-      String(process.env.NODE_ENV !== 'production' ? 8001 : window.location.port)
+      'ws',
+      'localhost',
+      '8001'
     );
   }
   render() {
     return (
       <Suspense fallback={< div > Loading...</div>}>
         <Router>
-          <Game colyseus={this.colyseus} path="/game" />
+          <Game colyseus={this.colyseus} path="/game/:roomId" />
           <Home path="/" />
         </Router>
       </Suspense >

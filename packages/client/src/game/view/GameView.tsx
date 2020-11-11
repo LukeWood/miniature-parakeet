@@ -1,12 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StateManager } from '../state/StateManager';
+import {GameState} from '../state/types';
 
 import { useWindowSize, useDisableScroll } from '../../hooks';
 
-import { Stage, AppConsumer, render } from '@inlet/react-pixi';
-import * as PIXI from 'pixi.js';
-
-import { PlayerSprite } from './entities';
+import { Stage, AppConsumer, Sprite } from '@inlet/react-pixi';
 
 interface IProps {
   stateManager: StateManager;
@@ -18,43 +16,37 @@ interface GameRenderComponentProps {
 }
 
 interface GameDisplayComponentProps {
-  stateManager: StateManager;
+  state: GameState;
 }
 
 const GameDisplayComponent = (props: GameDisplayComponentProps) => {
+  if (props.state === 'zero') {
+    return <></>
+  }
   return <>
-    {props.stateManager.getGameState().players.map((player) => <PlayerSprite key={player.id} player={player} />)}
+    <Sprite image={'https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/IaUrttj.png'} x={props.state.x} y={props.state.x} />
   </>
-}
-
-const loop = (props: GameRenderComponentProps) => {
-  let animFrame: null | number;
-  function callback(t: number) {
-    animFrame = requestAnimationFrame(callback)
-    // custom render components into PIXI Container
-    render(<GameDisplayComponent stateManager={props.stateManager} />, props.app.stage)
-  }
-  callback(0);
-  return () => {
-    if (animFrame != null) {
-      cancelAnimationFrame(animFrame);
-    }
-  }
-}
-
-const GameRenderComponent = (props: GameRenderComponentProps) => {
-  useEffect(() => {
-    const cancel = loop(props)
-    return () => {
-      cancel();
-    }
-  })
-  return <></>
 }
 
 export const GameView = (props: IProps) => {
   const size = useWindowSize();
   useDisableScroll();
+
+  const [state, setState] = useState<GameState>('zero')
+  useEffect(() => {
+    let cancelled = false;
+    let render = () => {
+      if (cancelled) {
+        return;
+      }
+      setState(props.stateManager.getGameState())
+      requestAnimationFrame(render)
+    }
+    requestAnimationFrame(render)
+    return () => {
+      cancelled = true;
+    }
+  })
 
   return (<Stage
     raf
@@ -62,10 +54,6 @@ export const GameView = (props: IProps) => {
     height={size.height}
     className="game-view"
   >
-    <AppConsumer>
-      {app => <>
-        <GameRenderComponent app={app} stateManager={props.stateManager} />
-      </>}
-    </AppConsumer>
+    <GameDisplayComponent state={state}/>
   </Stage>)
 }

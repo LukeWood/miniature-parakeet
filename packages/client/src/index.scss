@@ -17,8 +17,16 @@ body {
   padding: 0;
   margin: 0;
   background-color: var(--background_color);
+  pointer-event: none;
+  user-select: none;
+}
+
+.interactable {
+  pointer-events: auto;
+  user-select: auto;
 }
 
 h1 {
 	color: var(--primary_color);
 }
+
