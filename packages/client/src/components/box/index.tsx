@@ -10,5 +10,5 @@ export function Box(props: {
     style,
     children,
   } = props;
-  return <div className="container-box">{children}</div>
+  return <div style={style} className="container-box">{children}</div>
 }

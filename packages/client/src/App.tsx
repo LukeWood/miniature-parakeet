@@ -4,9 +4,9 @@ import { ColyseusService } from 'services/colyseus';
 
 const Game = lazy(() => import('./scenes/Game'));
 const Home = lazy(() => import("./scenes/Home"));
-const RandomGame = lazy(() => import("./scenes/RandomGame"));
 
-interface IProps { }
+interface IProps {}
+
 class App extends Component {
   colyseus: ColyseusService;
   constructor(props: IProps) {
@@ -21,11 +21,11 @@ class App extends Component {
     return (
       <Suspense fallback={< div > Loading...</div>}>
         <Router>
-          <RandomGame colyseus={this.colyseus} path="/random" />
-          <Game colyseus={this.colyseus} path="/game/:roomId" />
-          <Home colyseus={this.colyseus} path="/" />
+          <Game colyseus={this.colyseus} roomId="random" path="/play/random" />
+          <Game colyseus={this.colyseus} path="/play/:roomId" />
+          <Home colyseus={this.colyseus} default/>
         </Router>
-      </Suspense >
+      </Suspense>
     );
   }
 }

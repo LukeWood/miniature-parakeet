@@ -1,17 +1,22 @@
 import { ColyseusService } from '../../services/colyseus'
 import { Room } from 'colyseus.js';
+import {ReplaySubject, Subject} from 'rxjs';
 
 import {GameState} from './types';
 
 export class StateManager {
   room?: Room
+  roomId: ReplaySubject<string>;
+  errors: Subject<Error>;
 
   constructor(private readonly colyseus: ColyseusService, private readonly lobby: string) {
-    this.setup()
+    this.roomId = new ReplaySubject(1);
+    this.errors = new Subject();
   }
 
   async setup() {
     this.room = await this.getGameRoom();
+    this.roomId.next(this.room.id);
   }
 
   async getGameRoom(): Promise<Room> {
