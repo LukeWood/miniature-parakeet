@@ -6,14 +6,8 @@ import {GameState} from './types';
 export class StateManager {
   room?: Room
 
-  local: GameState;
-  server: GameState;
-  x: number = 0;
-
   constructor(private readonly colyseus: ColyseusService, private readonly lobby: string) {
     this.setup()
-    this.local = 'zero'
-    this.server = 'zero'
   }
 
   async setup() {
@@ -32,17 +26,14 @@ export class StateManager {
   }
 
   update() {
-    if (!this.room || this.server === 'zero') {
-      return
-    }
-
-    this.server = this.room.state;
   }
 
   getGameState(): GameState {
-    this.x++;
+    if (!this.room?.state?.bunny) {
+      return null;
+    }
     return {
-      x: this.x
+      x: this.room.state.bunny.x
     }
   }
 

@@ -19,6 +19,7 @@ body {
   background-color: var(--background_color);
   pointer-event: none;
   user-select: none;
+  color: var(--text_color);
 }
 
 .interactable {
@@ -29,4 +30,3 @@ body {
 h1 {
 	color: var(--primary_color);
 }
-

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StateManager } from '../state/StateManager';
-import {GameState} from '../state/types';
+import { GameState } from '../state/types';
 
 import { useWindowSize, useDisableScroll } from '../../hooks';
 
@@ -20,7 +20,7 @@ interface GameDisplayComponentProps {
 }
 
 const GameDisplayComponent = (props: GameDisplayComponentProps) => {
-  if (props.state === 'zero') {
+  if (props.state === null) {
     return <></>
   }
   return <>
@@ -32,7 +32,7 @@ export const GameView = (props: IProps) => {
   const size = useWindowSize();
   useDisableScroll();
 
-  const [state, setState] = useState<GameState>('zero')
+  const [state, setState] = useState<GameState>(null)
   useEffect(() => {
     let cancelled = false;
     let render = () => {
@@ -54,6 +54,6 @@ export const GameView = (props: IProps) => {
     height={size.height}
     className="game-view"
   >
-    <GameDisplayComponent state={state}/>
+    <GameDisplayComponent state={state} />
   </Stage>)
 }
