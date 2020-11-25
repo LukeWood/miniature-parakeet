@@ -1,8 +1,6 @@
-import React, { Component, ReactNode, useState } from 'react';
+import React, { Component, ReactNode, useState, useEffect } from 'react';
 import { RouteComponentProps, navigate } from '@reach/router';
-import { Link } from '@reach/router';
-import { Box } from '../components/box';
-import { Button } from '../components/button';
+import { Box, Button } from '../components';
 import {Space} from '../components/space';
 import {Center} from '../components/center';
 import {ColyseusService} from '../services/colyseus';
@@ -23,23 +21,38 @@ const RoomOptions = (props: {}) => {
       type="text"
       onChange={v => setRoom(v.target.value)}
       ></input>
-    <Button onClick={() => navigate("/play/"+room)} text="Random"></Button>
-    <br/>
-    <Button onClick={() => navigate("/play/random")} text="Random"></Button>
+    <Button onClick={() => navigate("/play/"+room)} text="Join +"></Button>
+    <Button onClick={() => navigate("/play/random")} text="Random + "></Button>
+  </Box>)
+}
+
+const CharacterCustomization = () => {
+  const [name, setName] = useState(localStorage.getItem("name") || "");
+
+  useEffect(() => localStorage.setItem("name", name), [name]);
+
+  return (<Box>
+    <input
+      value={name}
+      placeholder="Name"
+      type="text"
+      onChange={v => setName(v.target.value)}
+      ></input>
   </Box>)
 }
 
 export default class Game extends Component<IProps, IState> {
-  constructor(props: IProps) {
-    super(props)
-  }
-
   render(): ReactNode {
     return <>
       <Center>
+      <Space size='s'/>
       <Box>
         <h1 style={{ textAlign: 'center' }}>Home</h1>
       </Box>
+
+      <Space size='s'/>
+      <CharacterCustomization/>
+
       <Space size='s'/>
       <RoomOptions/>
       </Center>

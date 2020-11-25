@@ -36,13 +36,16 @@ export default class Game extends Component<IProps, IState>{
     this.historySubscription = this.stateManager
       .roomId
       .subscribe(id => {
-        window.history.pushState({}, "/play/random", "/play/" + id);
+        window.history.replaceState({}, "/play/random", "/play/" + id);
       });
   }
 
   componentWillUnmount() {
     if (this.historySubscription) {
       this.historySubscription.unsubscribe()
+    }
+    if (this.stateManager.room) {
+      this.stateManager.room.leave(true);
     }
   }
 
