@@ -27,9 +27,10 @@ export default class Game extends Component<IProps, IState>{
   componentDidMount() {
 
     this.stateManager.setup()
-      .catch(() => {
+      .catch((e) => {
         navigate("/");
-        show_error_banner(`Lobby ${this.props.roomId} does not exist`)
+        show_error_banner(`Error joining lobby ${this.props.roomId} does not exist`)
+        console.error(e);
       })
 
     this.historySubscription = this.stateManager

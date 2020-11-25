@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StateManager } from '../state/StateManager';
-import { GameState } from '../state/types';
+import { StateManager, RenderState, GameRenderState, LobbyRenderState, isLobbyRenderState } from '../state/StateManager';
 
 import { useWindowSize, useDisableScroll } from '../../hooks';
 
@@ -16,7 +15,7 @@ interface GameRenderComponentProps {
 }
 
 interface GameDisplayComponentProps {
-  state: GameState;
+  state: GameRenderState;
 }
 
 const GameDisplayComponent = (props: GameDisplayComponentProps) => {
@@ -28,11 +27,35 @@ const GameDisplayComponent = (props: GameDisplayComponentProps) => {
   </>
 }
 
+interface LobbyStateViewProps {
+  state: LobbyRenderState;
+}
+
+const LobbyStateView = (props: LobbyStateViewProps) => {
+  const state = props.state;
+
+  const playerNames: string[] = [];
+  for(let id in state.players) {
+    playerNames.push(state.players[id].name)
+  }
+  const players = playerNames.map(name => {
+    return (<p key={name}>{name}</p>)
+  })
+
+  const isHost = (state.sessionId in props.state.players) && props.state.players[props.state.sessionId].host
+  return <div>
+    <h1>Lobby</h1>
+    {players}
+    {isHost &&
+      <button onClick={() => state.room.send("start")}>Start</button>}
+  </div>
+}
+
 export const GameView = (props: IProps) => {
   const size = useWindowSize();
   useDisableScroll();
 
-  const [state, setState] = useState<GameState>(null)
+  const [state, setState] = useState<RenderState>(null)
   useEffect(() => {
     let cancelled = false;
     let render = () => {
@@ -47,6 +70,14 @@ export const GameView = (props: IProps) => {
       cancelled = true;
     }
   })
+
+  if (state == null) {
+    return <div>Loading...</div>
+  }
+
+  if (isLobbyRenderState(state)) {
+    return <LobbyStateView state={state}/>
+  }
 
   return (<Stage
     raf
