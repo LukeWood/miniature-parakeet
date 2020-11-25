@@ -2,4 +2,4 @@ interface IGameState {
   x: number;
 }
 
-export type GameState = IGameState | 'zero';
+export type GameState = IGameState | null;
