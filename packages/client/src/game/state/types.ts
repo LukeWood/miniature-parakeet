@@ -1,12 +1,13 @@
 export interface IGameState {
   lifecycle: 'lobby' | 'deathmatch';
-  x: number;
-  players: {[key: string]: Player};
+  players: {[key: string]: IPlayer};
 }
 
-export interface Player {
+export interface IPlayer {
   name: string;
   host: boolean;
+  x: number;
+  y: number;
 }
 
 export type GameState = IGameState | null;

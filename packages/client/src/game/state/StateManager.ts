@@ -1,9 +1,13 @@
 import { ColyseusService } from '../../services/colyseus'
 import { Room } from 'colyseus.js';
 import {BehaviorSubject, ReplaySubject, Subject, Observable} from 'rxjs';
-import {filter, pairwise, map, tap} from 'rxjs/operators';
+import {filter, pairwise, map} from 'rxjs/operators';
 
-import {GameState, Player} from './types';
+import {Maths} from '@bulletz/common';
+
+import {GameState, IPlayer} from './types';
+
+type PlayerKeys = Array<keyof IPlayer>;
 
 export function isLobbyRenderState(v: any): v is LobbyRenderState {
   return v && 'isLobbyState' in v;
@@ -11,13 +15,14 @@ export function isLobbyRenderState(v: any): v is LobbyRenderState {
 export interface LobbyRenderState {
   isLobbyState: true;
   sessionId: string;
-  players: {[key: string]: Player};
+  players: {[key: string]: IPlayer};
   room: Room;
 }
 
 export interface GameRenderState {
   isGameRenderState: true;
-  x: number;
+  frame: number;
+  players: {[key: string]: IPlayer};
 }
 
 function stateCompare(s1: any, s2: any) {
@@ -33,6 +38,7 @@ function diffStates(states: RenderState[]): boolean {
     throw 'states must have length 2';
   }
   const [s1, s2] = states;
+//  console.log(s1, s2)
   // loading done state
   if (s1 == null ){
     return true;
@@ -51,8 +57,10 @@ export type RenderState = LobbyRenderState | GameRenderState | null;
 export class StateManager {
   room?: Room
   roomId: ReplaySubject<string>;
-  errors: Subject<Error>;
-  state: GameState = null;
+
+  clientState: GameState = null;
+  serverState: GameState = null;
+
   rawStates$: BehaviorSubject<RenderState> = new BehaviorSubject<RenderState>(null);
   state$: Observable<RenderState> = this.rawStates$
     .pipe(
@@ -63,14 +71,16 @@ export class StateManager {
 
   constructor(private readonly colyseus: ColyseusService, private readonly lobby: string) {
     this.roomId = new ReplaySubject(1);
-    this.errors = new Subject();
+    setInterval(() => this.tick((Date).now()), 50)
   }
 
+  lastTick: number = (Date).now();
   async setup() {
     this.room = await this.getGameRoom();
     this.roomId.next(this.room.id);
     this.room.onStateChange(v => {
-      this.state = v;
+      this.serverState = v;
+      this.tick((Date).now());
       this.rawStates$.next(this.getGameState());
     })
   }
@@ -88,24 +98,74 @@ export class StateManager {
     }
   }
 
-  getGameState(): RenderState {
-    if (!this.room || !this.state) {
+  stateCopy(gs: GameState): GameState {
+    if (gs == null ){
       return null;
     }
 
-    if (this.state.lifecycle === 'lobby') {
+    return {
+      lifecycle: gs.lifecycle,
+      players: {}
+    }
+  }
+
+
+  tick(time: number) {
+    const dx =  time- this.lastTick;
+    this.lastTick = time;
+    if (!this.serverState) {
+      return;
+    }
+
+    if (!this.clientState) {
+      this.clientState = this.stateCopy(this.serverState);
+    }
+    if (!this.clientState) {
+      // impossible but need for ts.
+      return;
+    }
+
+    this.clientState.lifecycle = this.serverState.lifecycle;
+
+    const rawCopyPlayerProperties: PlayerKeys = ['host', 'name']
+    for (let pid of Object.keys(this.serverState.players)) {
+      const servPlayer = this.serverState.players[pid];
+
+      if (!this.clientState.players[pid]) {
+        this.clientState.players[pid] = {
+          x: servPlayer.x,
+          y: servPlayer.y,
+          host: servPlayer.host,
+          name: servPlayer.name
+        }
+        continue;
+      }
+
+      const player = this.clientState.players[pid];
+      this.clientState.players[pid].x = Maths.lerp(player.x, servPlayer.x, dx/100) // Update to deltaTime/50.
+      this.clientState.players[pid].y = Maths.lerp(player.y, servPlayer.y, dx/100) // Update to deltaTime/50.
+    }
+  }
+
+  getGameState(): RenderState {
+    if (!this.room || !this.clientState) {
+      return null;
+    }
+
+    if (this.clientState.lifecycle === 'lobby') {
       return {
         isLobbyState: true,
         sessionId: this.room!.sessionId,
-        players: this.state.players,
+        players: Object.assign({}, this.clientState.players),
         room: this.room!
       }
     }
 
-    if (this.state.lifecycle === 'deathmatch') {
-      return   {
+    if (this.clientState.lifecycle === 'deathmatch') {
+      return {
         isGameRenderState: true,
-        x: 0
+        frame: Date.now(),
+        players: Object.assign({}, this.clientState.players)
       }
     }
 

@@ -1,6 +1,7 @@
 .button {
   padding: 8px 16px 8px 16px;
   font-size: 16;
+  height: 48px;
   margin: 4px;
   user-select: none;
   outline: none;
@@ -12,7 +13,10 @@
   width: 80%;
   border-radius: 8px;
   cursor: pointer;
-
+  &:disabled {
+    filter: brightness(50%) !important;
+    cursor: default !important ;
+  }
   &:hover, &:focus {
     filter: brightness(90%);
     outline: 'solid while 3px';

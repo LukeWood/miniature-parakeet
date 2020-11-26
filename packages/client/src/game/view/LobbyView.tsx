@@ -6,8 +6,7 @@ import {Button, Center, Box, Space, Line} from '../../components';
 import Clipboard from 'react-clipboard.js';
 import {show_success_banner} from '../../util/banner';
 
-interface LobbyStateViewProps {
-  state: LobbyRenderState;
+interface LobbyStateViewProps extends LobbyRenderState {
 }
 
 interface shareArgs {
@@ -40,17 +39,16 @@ interface listPlayer {
   key: string;
 }
 export const LobbyStateView = (props: LobbyStateViewProps) => {
-  const state = props.state;
-
   const playerNames: listPlayer[] = [];
-  for(let id in state.players) {
-    playerNames.push({name: state.players[id].name, key: id})
+
+  for(let id in props.players) {
+    playerNames.push({name: props.players[id].name, key: id})
   }
   const players = playerNames.map(player => {
     return (<p key={player.key}>{player.name}</p>)
   })
 
-  const isHost = (state.sessionId in props.state.players) && props.state.players[props.state.sessionId].host
+  const isHost = (props.sessionId in props.players) && props.players[props.sessionId].host
   return (
   <Center>
     <Space size='s'/>
@@ -58,7 +56,7 @@ export const LobbyStateView = (props: LobbyStateViewProps) => {
     <h1>Lobby</h1>
     {isHost && <p>You're the host</p>}
     {isHost &&
-      <Button text="Start +" onClick={() => state.room.send("start")}></Button>}
+      <Button text="Start +" onClick={() => props.room.send("start")}></Button>}
     {!isHost && <p>Waiting for host to start</p>}
     <Line/>
     {players}

@@ -1,6 +1,6 @@
 import React, { Component, ReactNode, useState, useEffect } from 'react';
 import { RouteComponentProps, navigate } from '@reach/router';
-import { Box, Button } from '../components';
+import { Box, Button, Line, Input } from '../components';
 import {Space} from '../components/space';
 import {Center} from '../components/center';
 import {ColyseusService} from '../services/colyseus';
@@ -16,12 +16,16 @@ interface IState {
 const RoomOptions = (props: {}) => {
   const [room, setRoom] = useState("");
   return (<Box>
-    <input
+    <Input
+      ariaLabel="Room ID"
       value={room}
-      type="text"
-      onChange={v => setRoom(v.target.value)}
-      ></input>
-    <Button onClick={() => navigate("/play/"+room)} text="Join +"></Button>
+      style={{maxWidth: '300px'}}
+      placeholder="Room ID"
+      onChange={v => setRoom((v.target as HTMLInputElement).value)}
+      ></Input>
+    <Space size='xs'/>
+    <Button disabled={room == ""} onClick={() => navigate("/play/"+room)} text="Join +"></Button>
+    <Line/>
     <Button onClick={() => navigate("/play/random")} text="Random + "></Button>
   </Box>)
 }
@@ -32,12 +36,12 @@ const CharacterCustomization = () => {
   useEffect(() => localStorage.setItem("name", name), [name]);
 
   return (<Box>
-    <input
+    <Input
+      ariaLabel="name"
       value={name}
       placeholder="Name"
-      type="text"
-      onChange={v => setName(v.target.value)}
-      ></input>
+      onChange={e => setName((e.target as HTMLInputElement).value)}
+      ></Input>
   </Box>)
 }
 

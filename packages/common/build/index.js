@@ -19,7 +19,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.t = void 0;
-const t = __importStar(require("./types"));
-exports.t = t;
+exports.Geometry = exports.Maths = exports.Types = void 0;
+const Types = __importStar(require("./types"));
+exports.Types = Types;
+const Maths = __importStar(require("./maths"));
+exports.Maths = Maths;
+const Geometry = __importStar(require("./geometry"));
+exports.Geometry = Geometry;
 //# sourceMappingURL=index.js.map

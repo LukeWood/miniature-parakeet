@@ -1,9 +1,10 @@
 import { Room, Client } from 'colyseus';
-import {GameState, Player} from './game/GameState';
+import {GameState, Player, IInputs} from './game/GameState';
 
 interface options {
   name?: string
 }
+
 
 function normalizeName(name?: string): string {
   if (!name) {
@@ -15,7 +16,6 @@ function normalizeName(name?: string): string {
 export class GameRoom extends Room<GameState> {
   onCreate (){
       this.setState(new GameState())
-      setInterval(() => this.state.bunny.x++, 50);
       this.registerMessages()
   }
 
@@ -53,15 +53,38 @@ export class GameRoom extends Room<GameState> {
       }
       this.enterDeathmatch();
     })
+
+    this.onMessage("input", (client: Client, message: IInputs) => {
+      this.state.players[client.sessionId].inputs(message);
+    })
+  }
+
+  startGameLoop() {
+    setInterval(() => {
+      this.clock.tick();
+      this.tick();
+    }, 1000/60);
+  }
+  cancelGameLoop() {
+    this.clock.clear()
+  }
+
+  tick() {
+    const dx = this.clock.deltaTime;
+    for (let id of this.state.players.keys()) {
+      this.state.players[id].tick(dx);
+    }
   }
 
   enterDeathmatch() {
     this.state.lifecycle = 'deathmatch';
+    this.startGameLoop()
     this.lock()
   }
 
   enterLobby() {
     this.state.lifecycle = 'lobby';
+    this.cancelGameLoop();
     this.unlock();
   }
 
