@@ -24,7 +24,7 @@ const RoomOptions = (props: {}) => {
       onChange={v => setRoom((v.target as HTMLInputElement).value)}
       ></Input>
     <Space size='xs'/>
-    <Button disabled={room == ""} onClick={() => navigate("/play/"+room)} text="Join +"></Button>
+    <Button disabled={room === ""} onClick={() => navigate("/play/"+room)} text="Join +"></Button>
     <Line/>
     <Button onClick={() => navigate("/play/random")} text="Random + "></Button>
   </Box>)

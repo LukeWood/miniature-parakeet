@@ -1,91 +1,86 @@
-import React, { useEffect, useState, useMemo, useCallback} from 'react';
-import { StateManager, RenderState, GameRenderState, isLobbyRenderState } from '../state/StateManager';
+import React, { Component} from 'react';
+import { StateManager, isGameRenderState } from '../state/StateManager';
 
-import { useWindowSize, useDisableScroll } from '../../hooks';
-import {LobbyStateView} from './LobbyView';
+import { useDisableScroll } from '../../hooks';
 
 import {Controls} from '../controls';
 import {IInputs} from '../controls/types';
 
-import { Stage, useTick } from '@inlet/react-pixi';
 import { Player } from './entities/player';
+import { render } from "react-pixi-fiber";
 
-interface IProps {
+import * as PIXI from 'pixi.js';
+
+interface GameViewProps {
   stateManager: StateManager;
 }
 
-interface GameDisplayComponentProps extends GameRenderState {}
-function useForceUpdate() {
-  const [, setTick] = useState(0);
-  const update = useCallback(() => {
-    setTick(tick => tick + 1);
-  }, [])
-  return update;
-}
-const GameDisplayComponent = (props: GameDisplayComponentProps) => {
+interface GameViewState{};
 
-  const forceRender = useForceUpdate();
-  useTick(delta => {
-    forceRender();
-  })
-  if (props === null) {
-    return <></>
-  }
-  const playerSprites = [];
-  for (let key in props.players) {
-    playerSprites.push(<Player player={props.players[key]} key={key}/>);
-  }
-  return <>
-    {playerSprites}
-  </>
-}
-
-interface GamePlayComponentProps extends IProps {
-  state: GameRenderState
-}
-
-const GamePlayComponent = (props: GamePlayComponentProps) => {
-  const size = useWindowSize();
+const ScrollDisable = () => {
   useDisableScroll();
-
-  const actionCallback = useMemo(() => (inputs: IInputs) => {
-    props.stateManager.room?.send("input", inputs)
-  }, [])
-
-  return (
-    <>
-    <Controls actionCallback={actionCallback}/>
-    <Stage
-    raf
-    width={size.width}
-    height={size.height}
-    className="game-view"
-  >
-    <GameDisplayComponent {...props.state} />
-  </Stage>
-  </>)
+  return <></>
 }
 
-export const GameView = (props: IProps) => {
+export class GameView extends Component<GameViewProps, GameViewState> {
+   app!: PIXI.Application;
+   gameCanvas!: HTMLDivElement;
 
-  const [state, setState] = useState<RenderState>(null)
-  useEffect(() => {
-    const sub = props.stateManager.state$.subscribe(s => {
-      setState(s)
-    })
-    return () => {
-      sub.unsubscribe();
+   /**
+    * After mounting, add the Pixi Renderer to the div and start the Application.
+    */
+   componentDidMount() {
+     this.app = new PIXI.Application({
+       resizeTo: window,
+       antialias: true,
+     });
+     this.gameCanvas!.appendChild(this.app.view);
+     this.app.start();
+     this.app.ticker.add((dx) => this.renderScene(dx))
+   }
+
+   bunnyRot: number = 0;
+   renderScene(dx: number) {
+    const state = this.props.stateManager.getGameState();
+    if (!isGameRenderState(state)){
+      // shouldn't really ever happen but it may due to race conditions, just exit.
+      return;
     }
-  })
 
-  if (state == null) {
-    return <div>Loading...</div>
-  }
+    this.bunnyRot += dx/100;
+    const players = []
+    for (let pid in state.players) {
+      const player = state.players[pid];
+      players.push(<Player bunnyRot={this.bunnyRot} key={pid} player={player} />,)
+    }
+    render(
+      <>{players}</>,
+      this.app.stage
+    );
+   }
 
+   /**
+    * Stop the Application when unmounting.
+    */
+   componentWillUnmount() {
+     this.app.stop();
+   }
 
-  if (isLobbyRenderState(state)) {
-    return <LobbyStateView {...state}/>
-  }
+   actionCallback(v: IInputs) {
+     this.props.stateManager.room?.send('input', v);
+   }
 
-  return (<GamePlayComponent {...props} state={state}/>)
+   /**
+    * Simply render the div that will contain the Pixi Renderer.
+    */
+   render() {
+     let component = this;
+     return (
+       <>
+       <Controls actionCallback={(v: IInputs) => this.actionCallback(v)}/>
+       <ScrollDisable/>
+       <div ref={(thisDiv) => {component.gameCanvas = thisDiv!}} />
+       </>
+     );
+   }
 }

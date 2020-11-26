@@ -6,8 +6,7 @@ import {Button, Center, Box, Space, Line} from '../../components';
 import Clipboard from 'react-clipboard.js';
 import {show_success_banner} from '../../util/banner';
 
-interface LobbyStateViewProps extends LobbyRenderState {
-}
+interface LobbyStateViewProps extends LobbyRenderState {}
 
 interface shareArgs {
   title?: string;
