@@ -103,7 +103,11 @@ export class StateManager {
 
   constructor(private readonly colyseus: ColyseusService, private readonly lobby: string) {
     this.roomId = new ReplaySubject(1);
-    setInterval(() => this.tick((Date).now()), 50)
+    const cb = () => {
+      this.tick((Date).now())
+      requestAnimationFrame(cb);
+    }
+    requestAnimationFrame(cb);
   }
 
   lastTick: number = (Date).now();
