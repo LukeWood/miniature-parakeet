@@ -1,6 +1,6 @@
 import { ColyseusService } from '../../services/colyseus'
 import { Room } from 'colyseus.js';
-import {BehaviorSubject, ReplaySubject, Subject, Observable} from 'rxjs';
+import {BehaviorSubject, ReplaySubject, Observable} from 'rxjs';
 import {filter, pairwise, map} from 'rxjs/operators';
 
 import {Maths} from '@bulletz/common';
@@ -12,6 +12,10 @@ type PlayerKeys = Array<keyof IPlayer>;
 export function isLobbyRenderState(v: any): v is LobbyRenderState {
   return v && 'isLobbyState' in v;
 }
+export function isGameRenderState(v: any): v is GameRenderState {
+  return v && 'isGameRenderState' in v;
+}
+
 export interface LobbyRenderState {
   isLobbyState: true;
   sessionId: string;
@@ -25,17 +29,45 @@ export interface GameRenderState {
   players: {[key: string]: IPlayer};
 }
 
+function removeRoom(s1: any) {
+  let {room, ...rest} = s1;
+  return rest;
+}
+
 function stateCompare(s1: any, s2: any) {
-  var {room, ...rest} = s1;
-  var {room, ...rest2} = s2;
+  let rest = removeRoom(s1);
+  let rest2 = removeRoom(s2);
   const str1 = JSON.stringify(rest)
   const str2 = JSON.stringify(rest2)
   return str1 !== str2;
 }
+function key_diff (a1: string[], a2: string[]) {
+
+    let a: {[key: string]: boolean} = {};
+    let diff = [];
+
+    for (let i = 0; i < a1.length; i++) {
+        a[a1[i]] = true;
+    }
+
+    for (let i = 0; i < a2.length; i++) {
+        if (a[a2[i]]) {
+            delete a[a2[i]];
+        } else {
+            a[a2[i]] = true;
+        }
+    }
+
+    for (var k in a) {
+        diff.push(k);
+    }
+
+    return diff;
+}
 
 function diffStates(states: RenderState[]): boolean {
-  if (states.length != 2) {
-    throw 'states must have length 2';
+  if (states.length !== 2) {
+    throw new Error('diffStates must be called with [state1, state2]');
   }
   const [s1, s2] = states;
 //  console.log(s1, s2)
@@ -127,8 +159,17 @@ export class StateManager {
 
     this.clientState.lifecycle = this.serverState.lifecycle;
 
-    const rawCopyPlayerProperties: PlayerKeys = ['host', 'name']
-    for (let pid of Object.keys(this.serverState.players)) {
+    // delete players not in server, but on client
+    const serverPids = Object.keys(this.serverState.players)
+    const clientPids = Object.keys(this.clientState.players)
+    const diff = key_diff(clientPids, serverPids);
+    for (let pid of diff) {
+      delete this.clientState.players[pid];
+    }
+
+    // iterate all server players
+    const playerCopyProps: PlayerKeys = ['host', 'name']
+    for (let pid of serverPids) {
       const servPlayer = this.serverState.players[pid];
 
       if (!this.clientState.players[pid]) {
@@ -144,7 +185,11 @@ export class StateManager {
       const player = this.clientState.players[pid];
       this.clientState.players[pid].x = Maths.lerp(player.x, servPlayer.x, dx/100) // Update to deltaTime/50.
       this.clientState.players[pid].y = Maths.lerp(player.y, servPlayer.y, dx/100) // Update to deltaTime/50.
+      for (let prop of playerCopyProps) {
+        (this.clientState.players[pid] as any)[prop] = servPlayer[prop];
+      }
     }
+
   }
 
   getGameState(): RenderState {

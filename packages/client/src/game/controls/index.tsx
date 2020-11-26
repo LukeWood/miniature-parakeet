@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useCallback} from 'react';
 import {IInputs} from './types';
 
 interface ControlProps {
@@ -29,11 +29,13 @@ let activeControls = {
 };
 
 export const Controls = (props: ControlProps) => {
-  const updateAndSend = (change: object) => {
+  const actionCallback = props.actionCallback;
+
+  const updateAndSend = useCallback((change: object) => {
     const updated =  Object.assign({}, activeControls, change);
-    props.actionCallback(updated)
+    actionCallback(updated)
     activeControls = updated;
-  }
+  }, [actionCallback])
 
   useEffect(() => {
     const keydown = (e: KeyboardEvent) => {
@@ -50,14 +52,7 @@ export const Controls = (props: ControlProps) => {
       window.removeEventListener("keydown", keydown)
       window.removeEventListener("keyup", keyup)
     }
-  }, [props.actionCallback])
-
-  useEffect(
-    () => {
-      props.actionCallback(activeControls)
-    },
-    [activeControls]
-  )
+  }, [props.actionCallback, updateAndSend])
 
   // TODO(lukewood): Mobile controls
   return <></>

@@ -3,7 +3,7 @@ import { RouteComponentProps, navigate } from '@reach/router';
 import { Subscription } from 'rxjs';
 
 import { StateManager } from '../game/state/StateManager';
-import { GameView } from '../game/view/GameView';
+import { CoreView } from '../game/view/CoreView';
 import { ColyseusService } from '@bulletz/client/src/services/colyseus'
 
 import { show_error_banner } from '../util/banner';
@@ -44,13 +44,11 @@ export default class Game extends Component<IProps, IState>{
     if (this.historySubscription) {
       this.historySubscription.unsubscribe()
     }
-    if (this.stateManager.room) {
-      this.stateManager.room.leave(true);
-    }
+    this.stateManager.room?.leave(true);
   }
 
   render(): ReactNode {
-    return <GameView stateManager={this.stateManager}></GameView>
+    return <CoreView stateManager={this.stateManager}/>
   }
 
 }

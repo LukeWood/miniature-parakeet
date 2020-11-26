@@ -25,7 +25,7 @@ export class Player extends Schema {
   @type("number")
   y: number = 1;
 
-  speed:number = 10;
+  speed:number = 5;
   direction: Geometry.Vector = new Geometry.Vector(0, 0);
 
   activeInputs: IInputs= {
